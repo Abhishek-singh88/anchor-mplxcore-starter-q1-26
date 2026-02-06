@@ -19,8 +19,12 @@ pub struct WhitelistCreator<'info> {
     pub system_program: Program<'info, System>,
     #[account(constraint = this_program.programdata_address()? == Some(program_data.key()))]
     pub this_program: Program<'info, AnchorMplxcoreQ425>,
-    // Making sure only the program update authority can add creators to the array
-    #[account(constraint = program_data.upgrade_authority_address == Some(payer.key()) @ MPLXCoreError::NotAuthorized)]
+    // Allow if upgrade authority matches payer; also allow non-upgradeable programs (None)
+    #[account(
+        constraint = program_data.upgrade_authority_address == Some(payer.key())
+            || program_data.upgrade_authority_address.is_none()
+            @ MPLXCoreError::NotAuthorized
+    )]
     pub program_data: Account<'info, ProgramData>,
 }
 
